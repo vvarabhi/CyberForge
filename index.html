@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CyberForge — Your comprehensive cybersecurity pentesting tracker. Track your 3-month roadmap, study sessions, labs, courses, notes, and interview prep. Built for aspiring penetration testers.">
+  <title>CyberForge — Pentesting Tracker Platform</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/index.css?v=2">
+  <link rel="stylesheet" href="css/components.css?v=11">
+  <link rel="stylesheet" href="css/layout.css?v=2">
+  <link rel="stylesheet" href="css/animations.css?v=2">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+  <!-- Matrix Rain Background -->
+  <canvas id="matrix-canvas"></canvas>
+  <div class="grid-bg"></div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Modal (shared) -->
+  <div id="note-modal" class="modal-overlay"></div>
+
+  <!-- Mobile Toggle -->
+  <button class="mobile-toggle" aria-label="Toggle menu">☰</button>
+  <div class="mobile-overlay"></div>
+
+  <div class="app">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">CF</div>
+        <div class="brand-text">
+          <span class="brand-name">CyberForge</span>
+          <span class="brand-sub">Pentesting Tracker</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="dashboard" title="Dashboard" aria-label="Dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-section="certs" title="Certifications" aria-label="Certifications">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Certifications</span>
+        </button>
+        <button class="nav-item" data-section="roadmap" title="Roadmap" aria-label="Roadmap">
+          <span class="nav-icon">🗺️</span>
+          <span class="nav-label">Roadmap</span>
+        </button>
+        <button class="nav-item" data-section="timer" title="Study Timer" aria-label="Study Timer">
+          <span class="nav-icon">⏱️</span>
+          <span class="nav-label">Study Timer</span>
+        </button>
+        <button class="nav-item" data-section="notes" title="Notes" aria-label="Notes">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">Notes</span>
+        </button>
+        <button class="nav-item" data-section="labs" title="Labs Tracker" aria-label="Labs Tracker">
+          <span class="nav-icon">🧪</span>
+          <span class="nav-label">Labs Tracker</span>
+        </button>
+        <button class="nav-item" data-section="courses" title="Courses" aria-label="Courses">
+          <span class="nav-icon">🎓</span>
+          <span class="nav-label">Courses</span>
+        </button>
+        <button class="nav-item" data-section="interview" title="Interview Prep" aria-label="Interview Prep">
+          <span class="nav-icon">🎤</span>
+          <span class="nav-label">Interview Prep</span>
+        </button>
+
+        <div class="sidebar-settings" style="margin-top:var(--space-6); padding:0 var(--space-1);">
+          <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); padding:0 var(--space-4); margin-bottom:var(--space-2);">Settings</div>
+          <div style="padding:var(--space-3) var(--space-4); display:flex; flex-direction:column; gap:var(--space-3);">
+            <label class="flex items-center justify-between" style="cursor:pointer;">
+              <span class="text-sm text-muted">Matrix Rain</span>
+              <input type="checkbox" id="matrix-toggle" checked style="width:auto; appearance:auto; cursor:pointer;">
+            </label>
+            <button class="btn btn-secondary btn-sm w-full" id="export-data-btn">📥 Export Data</button>
+            <button class="btn btn-secondary btn-sm w-full" id="import-data-btn">📤 Import Data</button>
+            <button class="btn btn-sm w-full" id="delete-account-btn" style="background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.2);color:#f66;margin-top:var(--space-2);" onclick="if(Auth.currentUser)Auth.deleteUser(Auth.currentUser)">🗑️ Delete Account</button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="streak-display">
+          <span class="streak-fire">🔥</span>
+          <div class="streak-info">
+            <span class="streak-count" id="sidebar-streak-count">0 days</span>
+            <span class="streak-label">Study Streak</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="section-dashboard" class="section active">
+        <div class="page-header">
+          <h1>📊 Dashboard</h1>
+          <div class="page-actions">
+            <span class="text-sm text-muted" id="current-date"></span>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="grid-4 stagger-children" style="margin-bottom:var(--space-8);">
+          <div class="stat-card">
+            <span class="stat-icon">⏱️</span>
+            <span class="stat-value" id="stat-hours-today">0m</span>
+            <span class="stat-label">Studied Today</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🔥</span>
+            <span class="stat-value" id="stat-streak">0</span>
+            <span class="stat-label">Day Streak</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🧪</span>
+            <span class="stat-value" id="stat-labs">0</span>
+            <span class="stat-label">Labs Completed</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📝</span>
+            <span class="stat-value" id="stat-notes">0</span>
+            <span class="stat-label">Notes Written</span>
+          </div>
+        </div>
+
+        <!-- Progress + Quote Row -->
+        <div class="grid-2" style="margin-bottom:var(--space-8);">
+          <!-- Progress Ring -->
+          <div class="card-static" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <h3 style="margin-bottom:var(--space-5);">🗺️ Roadmap Progress</h3>
+            <div class="progress-ring-container" style="margin-bottom:var(--space-4);">
+              <svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg);">
+                <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+                <circle id="progress-ring" cx="100" cy="100" r="80" fill="none"
+                  stroke="url(#progressGrad)" stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="${2 * Math.PI * 80}" stroke-dashoffset="${2 * Math.PI * 80}"
+                  style="transition: stroke-dashoffset 1s ease;">
+                </circle>
+                <defs>
+                  <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00ff41;"/>
+                    <stop offset="50%" style="stop-color:#00d4ff;"/>
+                    <stop offset="100%" style="stop-color:#a855f7;"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="ring-label" id="progress-ring-label">0%</span>
+            </div>
+            <span class="text-sm text-muted" id="progress-ring-sub">0 / 0 tasks</span>
+          </div>
+
+          <!-- Daily Quote + Extra Stats -->
+          <div class="card-static" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <h3 style="margin-bottom:var(--space-5);">💡 Daily Motivation</h3>
+              <blockquote id="daily-quote" style="font-size:1.1rem;line-height:1.7;font-style:italic;padding:var(--space-4);border-left:3px solid var(--neon-green);margin-bottom:var(--space-6);">
+                Loading...
+              </blockquote>
+            </div>
+            <div class="grid-2" style="gap:var(--space-4);">
+              <div class="stat-card" style="padding:var(--space-4);">
+                <span class="stat-icon" style="font-size:1.1rem;">⚡</span>
+                <span class="stat-value" id="stat-sessions-today" style="font-size:1.5rem;">0</span>
+                <span class="stat-label">Sessions Today</span>
+              </div>
+              <div class="stat-card" style="padding:var(--space-4);">
+                <span class="stat-icon" style="font-size:1.1rem;">🎤</span>
+                <span class="stat-value" id="stat-questions" style="font-size:1.5rem;">0</span>
+                <span class="stat-label">Q&A Practiced</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap + Recent Activity -->
+        <div class="grid-2" style="margin-bottom:var(--space-8);">
+          <div class="card-static">
+            <h3 style="margin-bottom:var(--space-5);">📅 Activity Heatmap (90 days)</h3>
+            <div id="heatmap-grid" class="heatmap-grid"></div>
+            <div class="flex gap-4 items-center" style="margin-top:var(--space-3);">
+              <span class="text-xs text-muted">Less</span>
+              <div class="heatmap-cell" style="width:12px;height:12px;"></div>
+              <div class="heatmap-cell level-1" style="width:12px;height:12px;"></div>
+              <div class="heatmap-cell level-2" style="width:12px;height:12px;"></div>
+              <div class="heatmap-cell level-3" style="width:12px;height:12px;"></div>
+              <div class="heatmap-cell level-4" style="width:12px;height:12px;"></div>
+              <span class="text-xs text-muted">More</span>
+            </div>
+          </div>
+
+          <div class="card-static">
+            <h3 style="margin-bottom:var(--space-5);">🕐 Recent Activity</h3>
+            <div id="recent-activity"></div>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card-static">
+          <h3 style="margin-bottom:var(--space-5);">🔗 Quick Resource Links</h3>
+          <div class="grid-4" style="gap:var(--space-3);">
+            <a href="https://tryhackme.com" target="_blank" rel="noopener" class="btn btn-secondary w-full">🔰 TryHackMe</a>
+            <a href="https://app.hackthebox.com" target="_blank" rel="noopener" class="btn btn-secondary w-full">📦 HackTheBox</a>
+            <a href="https://portswigger.net/web-security" target="_blank" rel="noopener" class="btn btn-secondary w-full">🌐 PortSwigger</a>
+            <a href="https://overthewire.org/wargames/" target="_blank" rel="noopener" class="btn btn-secondary w-full">⚔️ OverTheWire</a>
+            <a href="https://academy.tcm-sec.com/" target="_blank" rel="noopener" class="btn btn-secondary w-full">🎯 TCM Academy</a>
+            <a href="https://picoctf.org/" target="_blank" rel="noopener" class="btn btn-secondary w-full">🏁 PicoCTF</a>
+            <a href="https://www.youtube.com/c/TheCyberMentor" target="_blank" rel="noopener" class="btn btn-secondary w-full">📹 TCM YouTube</a>
+            <a href="https://www.youtube.com/c/ippsec" target="_blank" rel="noopener" class="btn btn-secondary w-full">📹 IppSec</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CERTIFICATIONS ===== -->
+      <div id="section-certs" class="section">
+        <div class="page-header">
+          <h1>🏆 Certification Tracker</h1>
+          <div class="page-actions">
+            <span class="text-sm text-muted">CEH · OSCP · PNPT</span>
+          </div>
+        </div>
+        <div id="cert-content"></div>
+      </div>
+
+      <!-- ===== ROADMAP ===== -->
+      <div id="section-roadmap" class="section">
+        <div class="page-header">
+          <h1>🗺️ Roadmap</h1>
+          <div class="page-actions">
+            <span class="text-sm text-muted">90 study days + 10 project days · built for OSCP / PNPT prep</span>
+          </div>
+        </div>
+        <div id="roadmap-content"></div>
+      </div>
+
+      <!-- ===== TIMER ===== -->
+      <div id="section-timer" class="section">
+        <div class="page-header">
+          <h1>⏱️ Study Timer</h1>
+        </div>
+        <div id="timer-content"></div>
+      </div>
+
+      <!-- ===== NOTES ===== -->
+      <div id="section-notes" class="section">
+        <div id="notes-content"></div>
+      </div>
+
+      <!-- ===== LABS ===== -->
+      <div id="section-labs" class="section">
+        <div id="labs-content"></div>
+      </div>
+
+      <!-- ===== COURSES ===== -->
+      <div id="section-courses" class="section">
+        <div id="courses-content"></div>
+      </div>
+
+      <!-- ===== INTERVIEW ===== -->
+      <div id="section-interview" class="section">
+        <div id="interview-content"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- JS Modules — order matters -->
+  <script src="js/storage.js?v=5"></script>
+  <script src="js/auth.js?v=2"></script>
+  <script src="js/roadmap-data.js?v=11"></script>
+  <script src="js/roadmap-ui.js?v=18"></script>
+  <script src="js/cert-ceh-data.js?v=9"></script>
+  <script src="js/cert-oscp-data.js?v=8"></script>
+  <script src="js/cert-pnpt-data.js?v=8"></script>
+  <script src="js/cert-ceh-ui.js?v=10"></script>
+  <script src="js/dashboard.js?v=11"></script>
+  <script src="js/timer.js?v=2"></script>
+  <script src="js/notes.js?v=15"></script>
+  <script src="js/labs.js?v=9"></script>
+  <script src="js/courses.js?v=2"></script>
+  <script src="js/interview.js?v=11"></script>
+  <script src="js/app.js?v=10"></script>
+
+  <script>
+    // Login-gated initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      if (Auth.init()) {
+        // User is logged in — boot the app
+        App.init();
+        const dateEl = document.getElementById('current-date');
+        if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        Auth.updateUI();
+      }
+    });
+  </script>
+</body>
+</html>
